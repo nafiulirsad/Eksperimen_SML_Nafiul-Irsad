@@ -8,13 +8,15 @@ on:
 
 jobs:
   preprocess:
+    name: Run automated preprocessing
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -23,12 +25,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy scikit-learn
 
-      - name: Run Preprocessing Script
+      - name: Run preprocessing script
+        run: python preprocessing/automate_Nafiul-Irsad.py
+
+      - name: Verify preprocessed output
         run: |
-          python preprocessing/automate_Nafiul-Irsad.py
+          cd preprocessing/namadataset_preprocessing
+          for f in X_train_scaled.csv X_test_scaled.csv y_train.csv y_test.csv; do
+            test -s "$f" || { echo "missing or empty: $f"; exit 1; }
+            echo "$f -> $(wc -l < "$f") lines"
+          done
 
       - name: Upload preprocessed dataset
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: preprocessed_dataset
           path: preprocessing/namadataset_preprocessing/
+          retention-days: 30
